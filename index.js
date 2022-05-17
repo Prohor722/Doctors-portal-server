@@ -39,6 +39,25 @@ async function run(){
             const result = await bookingCollection.insertOne(booking);
             res.send({success: true, result});
         })
+
+        app.get('/available', async(req,res)=>{
+            const date = req.query.date || 'May 17, 2022';
+            const services = await serviceCollection.find().toArray();
+            const query = {date};
+            const bookings = await bookingCollection.find(query).toArray();
+
+            services.forEach(service=>{
+              const serviceBookings = bookings.filter(b=> b.treatment===service.name);
+              
+              const bookedSlots = serviceBookings.map(s=> s.slot);
+
+              const available = service.slots.filter(slot => !bookedSlots.includes(slot));
+              service.slots = available;
+            })
+
+            res.send(services);
+        });
+
     }
     finally{
 
