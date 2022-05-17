@@ -29,9 +29,18 @@ async function run(){
             res.send(result);
         })
 
+        app.get('/booking', async(req,res)=>{
+            const patientEmail = req.query.email;
+            console.log(patientEmail);
+            const query = { patientEmail };
+            const bookings = await bookingCollection.find(query).toArray();
+            res.send(bookings);
+        })
+
         app.post('/booking', async(req,res)=>{
             const booking = req.body;
-            const query = {treatment: booking.treatment, date: booking.date, patient: booking.patient};
+            console.log(booking);
+            const query = {treatment: booking.treatment, date: booking.date, patientName: booking.patientName};
             const exists = await bookingCollection.findOne(query);
             if(exists){
                 return res.send({success: false, booking: exists})
@@ -41,7 +50,7 @@ async function run(){
         })
 
         app.get('/available', async(req,res)=>{
-            const date = req.query.date || 'May 17, 2022';
+            const date = req.query.date;
             const services = await serviceCollection.find().toArray();
             const query = {date};
             const bookings = await bookingCollection.find(query).toArray();
