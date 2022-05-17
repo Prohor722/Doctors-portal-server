@@ -20,6 +20,7 @@ async function run(){
         console.log('database connected');
         const serviceCollection = client.db('doctors_portal').collection('services');
         const bookingCollection = client.db('doctors_portal').collection('booking');
+        const userCollection = client.db('doctors_portal').collection('user');
         
         app.get('/services', async(req,res)=>{
             const query = {};
@@ -27,6 +28,19 @@ async function run(){
             const result = await cursor.toArray();
 
             res.send(result);
+        })
+
+        app.put('/user/:email',async(req,res)=>{
+            const email =  req.params.email;
+            const user = req.body;
+            const filter = { email};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: user
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+
         })
 
         app.get('/booking', async(req,res)=>{
