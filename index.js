@@ -165,6 +165,12 @@ async function run() {
       res.send(services);
     });
 
+    //get doctors list to show
+    app.get('/doctor',verifyJWT,verifyAdmin, async(req,res)=>{
+        const doctors = await doctorCollection.find().toArray();
+        res.send(doctors);
+    })
+
     //add doctor
     app.post("/doctor", verifyJWT, async (req, res) => {
       const doctor = req.body;
