@@ -41,7 +41,7 @@ async function run(){
         
         app.get('/services', async(req,res)=>{
             const query = {};
-            const cursor = serviceCollection.find(query);
+            const cursor = serviceCollection.find(query).project({name:1});
             const result = await cursor.toArray();
 
             res.send(result);
