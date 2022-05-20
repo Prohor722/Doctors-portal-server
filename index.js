@@ -4,6 +4,7 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const jwt = require("jsonwebtoken");
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -60,6 +61,20 @@ async function run() {
         res.status(403).send({ message: "You do not have that access." });
       }
     };
+
+    //for payment
+    app.post('/create-payment-intent', verifyJWT,async(req,res)=>{
+          const service = req.body;
+          const price = service.price;
+          const amount = price*100;
+          const paymentIntent = await stripe.paymentIntents.create({
+              amount: amount,
+              currency: 'usd',
+              payment_method_types: ['card']
+          });
+
+          res.send({clientSecret: paymentIntent.client_secret})
+    })
 
     //get services names for adding doctor
     app.get("/services", async (req, res) => {
@@ -125,6 +140,14 @@ async function run() {
       }
     });
 
+    //get booking for payment
+    app.get('/booking/:id',verifyJWT, async(req,res)=>{
+        const id = req.params.id;
+        const query = {_id: ObjectId(id)}
+        const booking = await bookingCollection.findOne(query);
+        res.send(booking);
+    })
+
     //post a booking
     app.post("/booking", async (req, res) => {
       const booking = req.body;
@@ -141,6 +164,9 @@ async function run() {
       const result = await bookingCollection.insertOne(booking);
       res.send({ success: true, result });
     });
+
+    //
+    app.patch('/booking/:id', verifyJWT,(req))
 
     //get available slots for booking
     app.get("/available", async (req, res) => {
