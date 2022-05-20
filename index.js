@@ -47,6 +47,7 @@ async function run() {
     const bookingCollection = client.db("doctors_portal").collection("booking");
     const userCollection = client.db("doctors_portal").collection("user");
     const doctorCollection = client.db("doctors_portal").collection("doctors");
+    const paymentCollection = client.db("doctors_portal").collection("payments");
 
     //verify admin
     const verifyAdmin = async (req, res, next) => {
@@ -166,7 +167,22 @@ async function run() {
     });
 
     //
-    app.patch('/booking/:id', verifyJWT,(req))
+    app.patch('/booking/:id', verifyJWT,async(req,res)=>{
+        const id = req.params.id;
+        const payment = req.body;
+        const query = {_id: ObjectId(id)};
+        const updateDoc = {
+            $set:{
+                paid: true,
+                transactionId: payment.transactionId,
+            }
+        }
+
+        const result = await paymentCollection.insertOne(payment);
+        const updatedBooking = await bookingCollection.updateOne(query,updateDoc);
+        res.send(updateDoc)
+
+    })
 
     //get available slots for booking
     app.get("/available", async (req, res) => {
